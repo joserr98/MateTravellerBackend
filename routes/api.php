@@ -21,4 +21,5 @@ use App\Http\Controllers\Api\V1\UserController;
 // USERS MANAGEMENT
 Route::post('/login', [UserController::class, 'login']);
 Route::post('/profile', [UserController::class, 'profile'])->middleware('auth:sanctum');
-Route::apiResource('/users', UserController::class)->only(['index','show','destroy','store','update']);
+Route::patch('/users/{user}', [UserController::class, 'update'])->middleware('auth:sanctum');
+Route::apiResource('/users', UserController::class)->only(['index','show','destroy','store']);

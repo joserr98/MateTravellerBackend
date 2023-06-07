@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Dotenv\Validator;
+use Error;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -152,8 +153,8 @@ class UserController extends Controller
             $token = $user->createToken('apiToken')->plainTextToken;
 
             DB::table('users')
-              ->where('id', $user->id)
-              ->update(['remember_token' => $token]);
+                ->where('id', $user->id)
+                ->update(['remember_token' => $token]);
 
             return response()->json(
                 [
@@ -164,7 +165,6 @@ class UserController extends Controller
                 ],
                 200
             );
-
         } catch (\Throwable $th) {
             Log::error("Error registering user: " . $th->getMessage());
             return response()->json(
@@ -187,7 +187,6 @@ class UserController extends Controller
 
         try {
             $user = auth()->user();
-
             $user = User::query()->where('id', '=', $user->id)->get();
 
             return response()->json(
@@ -195,18 +194,18 @@ class UserController extends Controller
                     "success" => true,
                     "message" => "User retrieved successfuly",
                     "data" => $user
-                ], 
+                ],
                 201
             );
         } catch (\Throwable $th) {
 
-            Log::error("Error getting user:". $th->getMessage());
+            Log::error("Error getting user:" . $th->getMessage());
             return response()->json(
                 [
                     "success" => true,
                     "message" => "Couldnt retrieve user profile",
                     "data" => $th->getMessage()
-                ], 
+                ],
                 404
             );
         }
@@ -215,9 +214,45 @@ class UserController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, User $user)
+    public function update(Request $request, string $userId)
     {
-        //
+        Log::info("User update");
+
+        try {
+            $user = auth()->user();
+
+            if($user->id == $userId){
+
+                $updatedUser = User::query()
+                ->where('id', '=', $user->id)
+                ->update($request->all());
+            } else {
+
+                throw new Error ('You have no permissions to update this user');
+            }
+
+
+
+            return response()->json(
+                [
+                    "success" => true,
+                    "message" => "User updated successfuly",
+                    "data" => $updatedUser
+                ],
+                201
+            );
+        } catch (\Throwable $th) {
+
+            Log::error("Error updating user");
+            return response()->json(
+                [
+                    "success" => false,
+                    "message" => "Couldn't update user!",
+                    "error" => $th->getMessage()
+                ],
+                500
+            );
+        }
     }
 
     /**
