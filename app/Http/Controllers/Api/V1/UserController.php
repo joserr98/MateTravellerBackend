@@ -23,6 +23,7 @@ class UserController extends Controller
             ]);
 
             if ($validator->fails()) {
+                
                 return response()->json(
                     [
                         "success" => true,
@@ -39,6 +40,7 @@ class UserController extends Controller
             $user = User::query()->where('email', $email)->first();
 
             if (!$user) {
+
                 return response()->json(
                     [
                         "success" => true,
@@ -49,6 +51,7 @@ class UserController extends Controller
             }
 
             if (!Hash::check($password, $user->password)) {
+
                 return response()->json(
                     [
                         "success" => true,
@@ -71,6 +74,7 @@ class UserController extends Controller
             );
         } catch (\Throwable $th) {
             Log::error("Error logging user: " . $th->getMessage());
+
             return response()->json(
                 [
                     "success" => false,
@@ -82,9 +86,6 @@ class UserController extends Controller
         }
     }
 
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
         Log::info("Get list of all users");
@@ -103,6 +104,7 @@ class UserController extends Controller
         } catch (\Throwable $th) {
 
             Log::error("Error getting users:" . $th->getMessage());
+
             return response()->json(
                 [
                     "success" => true,
@@ -114,9 +116,6 @@ class UserController extends Controller
         }
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         try {
@@ -128,6 +127,7 @@ class UserController extends Controller
             ]);
 
             if ($validator->fails()) {
+
                 return response()->json(
                     [
                         "success" => true,
@@ -166,7 +166,9 @@ class UserController extends Controller
                 200
             );
         } catch (\Throwable $th) {
+
             Log::error("Error registering user: " . $th->getMessage());
+
             return response()->json(
                 [
                     "success" => false,
@@ -178,9 +180,6 @@ class UserController extends Controller
         }
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function profile()
     {
         Log::info("User profile");
@@ -200,6 +199,7 @@ class UserController extends Controller
         } catch (\Throwable $th) {
 
             Log::error("Error getting user:" . $th->getMessage());
+
             return response()->json(
                 [
                     "success" => true,
@@ -211,14 +211,12 @@ class UserController extends Controller
         }
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, string $userId)
     {
         Log::info("User update");
 
         try {
+
             $user = auth()->user();
 
             if($user->id == $userId){
@@ -231,8 +229,6 @@ class UserController extends Controller
                 throw new Error ('You have no permissions to update this user');
             }
 
-
-
             return response()->json(
                 [
                     "success" => true,
@@ -244,6 +240,7 @@ class UserController extends Controller
         } catch (\Throwable $th) {
 
             Log::error("Error updating user");
+
             return response()->json(
                 [
                     "success" => false,
@@ -255,9 +252,6 @@ class UserController extends Controller
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(User $user)
     {
         //
