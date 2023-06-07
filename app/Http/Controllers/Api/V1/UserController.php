@@ -84,7 +84,31 @@ class UserController extends Controller
      */
     public function index()
     {
-        //
+        Log::info("Get list of all users");
+
+        try {
+            $users = User::query()->get();
+
+            return response()->json(
+                [
+                    "success" => true,
+                    "message" => "Users retrieved successfuly",
+                    "data" => $users
+                ], 
+                201
+            );
+        } catch (\Throwable $th) {
+        
+            Log::error("Error getting users:". $th->getMessage());
+            return response()->json(
+                [
+                    "success" => true,
+                    "message" => "Couldnt retrieve users",
+                    "data" => $th->getMessage()
+                ], 
+                201
+            );
+        }
     }
 
     /**
@@ -119,3 +143,6 @@ class UserController extends Controller
         //
     }
 }
+
+
+
