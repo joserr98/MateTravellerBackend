@@ -2,8 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\V1\UserController as UserV1;
-use App\Http\Controllers\UserController;
+use App\Http\Controllers\Api\V1\UserController;
 
 /*
 |--------------------------------------------------------------------------
@@ -16,15 +15,6 @@ use App\Http\Controllers\UserController;
 |
 */
 
-// Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-//     return $request->user();
-// });
-
-// AUTH
-
-// Route::get('/users', [UserController::class, 'index']);
-
-// USERS
-// Route::get('/users', [UserV1::class, 'show']);
-Route::post('/login', [UserV1::class, 'login']);
-Route::apiResource('/users', UserV1::class)->only(['index','show','destroy','store','update']);
+// USERS MANAGEMENT
+Route::post('/login', [UserController::class, 'login']);
+Route::apiResource('/users', UserController::class)->only(['index','show','destroy','store','update']);

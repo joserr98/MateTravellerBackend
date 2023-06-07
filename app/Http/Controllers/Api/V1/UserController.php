@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use Dotenv\Validator;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator as FacadesValidator;
@@ -35,7 +37,7 @@ class UserController extends Controller
 
             $user = User::query()->where('email', $email)->first();
 
-            if (!$user){
+            if (!$user) {
                 return response()->json(
                     [
                         "success" => true,
@@ -45,7 +47,7 @@ class UserController extends Controller
                 );
             }
 
-            if (!Hash::check($password, $user->password)){
+            if (!Hash::check($password, $user->password)) {
                 return response()->json(
                     [
                         "success" => true,
@@ -67,7 +69,7 @@ class UserController extends Controller
                 200
             );
         } catch (\Throwable $th) {
-            Log::error("Error logging user: ". $th->getMessage());
+            Log::error("Error logging user: " . $th->getMessage());
             return response()->json(
                 [
                     "success" => false,
@@ -94,18 +96,18 @@ class UserController extends Controller
                     "success" => true,
                     "message" => "Users retrieved successfuly",
                     "data" => $users
-                ], 
+                ],
                 201
             );
         } catch (\Throwable $th) {
-        
-            Log::error("Error getting users:". $th->getMessage());
+
+            Log::error("Error getting users:" . $th->getMessage());
             return response()->json(
                 [
                     "success" => true,
                     "message" => "Couldnt retrieve users",
                     "data" => $th->getMessage()
-                ], 
+                ],
                 201
             );
         }
@@ -116,7 +118,64 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        try {
+
+            $validator = FacadesValidator::make($request->all(), [
+                'name' => 'required',
+                'email' => 'required | unique:users,email',
+                'password' => 'required | min:6 | max:12',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json(
+                    [
+                        "success" => true,
+                        "message" => "Body validation fails",
+                        "errors" => $validator->errors()
+                    ],
+                    400
+                );
+            };
+
+            $name = $request->input('name');
+            $email = $request->input('email');
+            $password = $request->input('password');
+
+            $encryptedPassword = bcrypt($password);
+
+            $user = User::create([
+                'name' => $name,
+                'email' => $email,
+                'password' => $encryptedPassword,
+            ]);
+
+            $token = $user->createToken('apiToken')->plainTextToken;
+
+            DB::table('users')
+              ->where('id', $user->id)
+              ->update(['remember_token' => $token]);
+
+            return response()->json(
+                [
+                    "success" => true,
+                    "message" => "User registered",
+                    "data" => $user,
+                    "token" => $token
+                ],
+                200
+            );
+
+        } catch (\Throwable $th) {
+            Log::error("Error registering user: " . $th->getMessage());
+            return response()->json(
+                [
+                    "success" => false,
+                    "message" => "User cannot be registered",
+                    "data" => $th->getMessage()
+                ],
+                500
+            );
+        }
     }
 
     /**
@@ -124,7 +183,6 @@ class UserController extends Controller
      */
     public function show()
     {
-        
     }
 
     /**
@@ -143,6 +201,3 @@ class UserController extends Controller
         //
     }
 }
-
-
-
