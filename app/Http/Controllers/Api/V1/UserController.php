@@ -181,8 +181,35 @@ class UserController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show()
+    public function profile()
     {
+        Log::info("User profile");
+
+        try {
+            $user = auth()->user();
+
+            $user = User::query()->where('id', '=', $user->id)->get();
+
+            return response()->json(
+                [
+                    "success" => true,
+                    "message" => "User retrieved successfuly",
+                    "data" => $user
+                ], 
+                201
+            );
+        } catch (\Throwable $th) {
+
+            Log::error("Error getting user:". $th->getMessage());
+            return response()->json(
+                [
+                    "success" => true,
+                    "message" => "Couldnt retrieve user profile",
+                    "data" => $th->getMessage()
+                ], 
+                404
+            );
+        }
     }
 
     /**
