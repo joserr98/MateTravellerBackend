@@ -16,9 +16,10 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class
         ]);
 
-        \App\Models\User::factory(10)->create();
-        \App\Models\Trip::factory(10)->create();
-        
+        \App\Models\User::factory(20)->create();
+        \App\Models\Trip::factory(100)->create();
+        \App\Models\TripUser::factory(200)->create();
+
         // \App\Models\User::factory()->create([
         //     'name' => 'Test User',
         //     'email' => 'test@example.com',
