@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use Dotenv\Validator;
 use Error;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -23,7 +23,7 @@ class UserController extends Controller
             ]);
 
             if ($validator->fails()) {
-                
+
                 return response()->json(
                     [
                         "success" => true,
@@ -218,6 +218,12 @@ class UserController extends Controller
         try {
 
             $user = auth()->user();
+            $password = $request->input('password');
+            
+            if ($password) {
+                $encryptedPassword = bcrypt($password);
+                $request->merge(['password' => $encryptedPassword]);
+            }
 
             if($user->id == $userId){
 
@@ -252,8 +258,25 @@ class UserController extends Controller
         }
     }
 
-    public function destroy(User $user)
+    public function destroy(string $userId)
     {
-        //
+        try {
+
+            $user = auth()->user();
+
+            if($userId == $user->id){
+                DB::table('users')->where('id', '=', $user->id)->delete();
+
+                return response()->json(['message' => 'User deleted successfuly'], 201);
+            } else {
+
+                return response()->json(['message' => 'User Not Found'], 405);
+            }
+
+            
+        } catch (Exception $e) {
+
+            return response()->json(['message' => $e->getMessage()]);
+        }
     }
 }
