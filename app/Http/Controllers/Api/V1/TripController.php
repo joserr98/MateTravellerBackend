@@ -13,9 +13,7 @@ use Illuminate\Support\Facades\Validator;
 
 class TripController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    // USER ROLES CONST
     const TRAVELER_ROLE = 1;
     const ORGANIZER_ROLE = 2;
     const ADMIN_ROLE = 3;
@@ -50,18 +48,15 @@ class TripController extends Controller
         }
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         try {
 
             $user = auth()->user();
 
-            if($user->role_id == self::TRAVELER_ROLE){
+            if ($user->role_id == self::TRAVELER_ROLE) {
 
-                throw new Error ('You cannot create trips');
+                throw new Error('You cannot create trips');
             }
 
             $validator = Validator::make($request->all(), [
@@ -122,9 +117,67 @@ class TripController extends Controller
         }
     }
 
-    /**
-     * Display the specified resource.
-     */
+    public function join(string $tripId)
+    {
+        Log::info("Add to trip {$tripId}");
+
+        try {
+
+            $user = auth()->user();
+
+            $existingTrip = Trip::find($tripId);
+
+            if (!$existingTrip){
+                return response()->json(
+                    [
+                        "success" => true,
+                        "message" => "There's no trip available",
+                    ],
+                    201
+                );   
+            }
+
+            $existingUserTrip = DB::table('trips_users')->where([['trip_id', $tripId],['user_id', $user->id]]);
+            
+            if ($existingUserTrip->exists()){
+                return response()->json(
+                    [
+                        "success" => true,
+                        "message" => "You are already joined to this trip",
+                    ],
+                    201
+                );
+            }
+
+
+
+            $newTrip = TripUser::create([
+                'trip_id' => $tripId,
+                'user_id' => $user->id
+            ]);
+
+            return response()->json(
+                [
+                    "success" => true,
+                    "message" => "Joined to the trip",
+                    "data" => $newTrip
+                ],
+                201
+            );
+
+        } catch (\Throwable $th) {
+
+            return response()->json(
+                [
+                    "success" => false,
+                    "message" => "Couldnt join trip",
+                    "data" => $th->getMessage()
+                ],
+                500
+            );
+        }
+    }
+
     public function show(Trip $trip)
     {
         Log::info("Get Trip {$trip->id}");
@@ -147,7 +200,7 @@ class TripController extends Controller
 
             return response()->json(
                 [
-                    "success" => true,
+                    "success" => false,
                     "message" => "Couldnt retrieve trip",
                     "data" => $th->getMessage()
                 ],
@@ -156,9 +209,6 @@ class TripController extends Controller
         }
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Trip $trip)
     {
         Log::info("Trip update");
@@ -175,9 +225,9 @@ class TripController extends Controller
 
                     throw new Error("End date can't be previous to start date.");
                 }
-    
+
                 if ($start_date < date('Y-m-d')) {
-    
+
                     throw new Error("Start date can't be previous to today.");
                 }
             }
@@ -217,9 +267,6 @@ class TripController extends Controller
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(string $idTrip)
     {
         try {
