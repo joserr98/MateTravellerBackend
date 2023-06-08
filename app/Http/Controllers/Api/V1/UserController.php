@@ -183,7 +183,7 @@ class UserController extends Controller
         }
     }
 
-    public function profile()
+    public function show()
     {
         Log::info("User profile");
 
