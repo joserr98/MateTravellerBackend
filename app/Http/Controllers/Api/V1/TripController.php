@@ -75,24 +75,28 @@ class TripController extends Controller
 
             $user = auth()->user();
 
-            $start_date = $request->input('start_date');
-            $end_date = $request->input('end_date');
+            if ($request->input('start_date') || $request->input('end_date')) {
+                $start_date = $request->input('start_date');
+                $end_date = $request->input('end_date');
 
-            if ($end_date < $start_date){
-                
-                throw new Error ("End date can't be previous to start date.");
-            }
-            
-            if ($start_date < date('Y-m-d')){
+                if ($end_date < $start_date) {
 
-                throw new Error ("Start date can't be previous to today.");
+                    throw new Error("End date can't be previous to start date.");
+                }
+    
+                if ($start_date < date('Y-m-d')) {
+    
+                    throw new Error("Start date can't be previous to today.");
+                }
             }
 
             if ($user->role_id != self::TRAVELER_ROLE) {
 
-                $updatedTrip =  DB::table('trips')
+                DB::table('trips')
                     ->where('id', $tripId)
                     ->update($request->all());
+
+                $trip = DB::table('trips')->where('id', $tripId)->first();
             } else {
 
                 throw new Error('You have no permissions to update this trip');
@@ -102,7 +106,7 @@ class TripController extends Controller
                 [
                     "success" => true,
                     "message" => "Trip updated successfuly",
-                    "data" => $updatedTrip
+                    "data" => $trip
                 ],
                 201
             );
