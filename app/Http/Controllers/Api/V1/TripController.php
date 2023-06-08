@@ -303,41 +303,4 @@ class TripController extends Controller
             );
         }
     }
-
-    public function findTripsFromUser(string $userId)
-    {
-        $user = auth()->user();
-        Log::error("Trips from {$user->id}");
-
-        try {
-
-            if ($user->role_id != self::ADMIN_ROLE && $user->id != $userId) {
-
-                throw new Error('You have no permission');
-            }
-
-            $tripUser = DB::table('users AS u')
-            ->select('tu.user_id', 'tu.trip_id', 'u.name', 'u.lastname', 'u.country', 't.city', 't.description')
-            ->join('trip_users AS tu', 'u.id', '=', 'tu.user_id')
-            ->join('trips AS t', 't.id', '=', 'tu.trip_id')
-            ->where('u.id', $userId)
-            ->get();
-            
-            $total = $tripUser->count();
-
-            return response()->json(['userTrips' => $tripUser, 'count' => $total]);
-        } catch (\Throwable $th) {
-
-            Log::error("Error at getting users' trip");
-
-            return response()->json(
-                [
-                    "success" => false,
-                    "message" => "Couldn't get user's trips",
-                    "error" => $th->getMessage()
-                ],
-                500
-            );
-        }
-    }
 }

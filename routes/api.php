@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\V1\UserController;
 use App\Http\Controllers\Api\V1\TripController;
+use App\Http\Controllers\TripUserController;
 
 // USERS ROUTES
 Route::middleware(['auth:sanctum'])->group(function () {
@@ -25,5 +26,6 @@ Route::apiResource('/trips', TripController::class)->only(['index']);
 
 // USER TRIPS ROUTES
 Route::middleware(['auth:sanctum'])->group(function () {
-    Route::get('/trips/users/{user}', [TripController::class, 'findTripsFromUser']);
+    Route::get('/trips/users/{user}', [TripUserController::class, 'findTripsFromUser']);
+    Route::get('/users/trips/{trip}', [TripUserController::class, 'findUsersFromTrip']);
 });
