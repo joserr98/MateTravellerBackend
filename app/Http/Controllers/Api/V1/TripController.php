@@ -4,10 +4,12 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\Trip;
+use App\Models\TripUser;
 use Error;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 
 class TripController extends Controller
 {
@@ -53,7 +55,71 @@ class TripController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        try {
+
+            $user = auth()->user();
+
+            if($user->role_id == self::TRAVELER_ROLE){
+
+                throw new Error ('You cannot create trips');
+            }
+
+            $validator = Validator::make($request->all(), [
+                'city' => 'required',
+                'start_date' => 'required',
+                'end_date' => 'required',
+            ]);
+
+            if ($validator->fails()) {
+
+                return response()->json(
+                    [
+                        "success" => true,
+                        "message" => "Body validation fails",
+                        "errors" => $validator->errors()
+                    ],
+                    400
+                );
+            };
+
+            $city = $request->input('city');
+            $start_date = $request->input('start_date');
+            $end_date = $request->input('end_date');
+            $description = $request->input('description');
+
+            $trip = Trip::create([
+                'city' => $city,
+                'start_date' => $start_date,
+                'end_date' => $end_date,
+                'description' => $description
+            ]);
+
+            TripUser::create([
+                'trip_id' => $trip->id,
+                'user_id' => $user->id
+            ]);
+
+            return response()->json(
+                [
+                    "success" => true,
+                    "message" => "New trip created",
+                    "data" => $trip,
+                ],
+                200
+            );
+        } catch (\Throwable $th) {
+
+            Log::error("Error creating trip: " . $th->getMessage());
+
+            return response()->json(
+                [
+                    "success" => false,
+                    "message" => "Trip cannot be created",
+                    "data" => $th->getMessage()
+                ],
+                500
+            );
+        }
     }
 
     /**

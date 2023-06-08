@@ -11,9 +11,10 @@ class Trip extends Model
     use HasFactory;
 
     protected $fillable = [
-        'country',
+        'city',
         'start_date',
         'end_date',
+        'description'
     ];
 
     public function users(): BelongsToMany

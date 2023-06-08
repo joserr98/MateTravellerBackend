@@ -15,7 +15,7 @@ Route::apiResource('/users', UserController::class)->only(['index','store']);
 
 // TRIPS ROUTES
 Route::middleware(['auth:sanctum'])->group(function () {
-    Route::put('/trips', [TripController::class, 'store']);
+    Route::post('/trips', [TripController::class, 'store']);
     Route::put('/trips/{trip}', [TripController::class, 'update']);
     Route::delete('/trips/{trip}', [TripController::class, 'destroy']);
 });
