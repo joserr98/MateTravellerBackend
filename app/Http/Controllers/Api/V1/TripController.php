@@ -61,13 +61,39 @@ class TripController extends Controller
      */
     public function show(Trip $trip)
     {
-        //
+        Log::info("Get Trip {$trip->id}");
+
+        try {
+
+            $trip = Trip::query()->where('id', '=', $trip->id)->get();
+
+            return response()->json(
+                [
+                    "success" => true,
+                    "message" => "Trip retrieved successfuly",
+                    "data" => $trip
+                ],
+                201
+            );
+        } catch (\Throwable $th) {
+
+            Log::error("Error getting trip:" . $th->getMessage());
+
+            return response()->json(
+                [
+                    "success" => true,
+                    "message" => "Couldnt retrieve trip",
+                    "data" => $th->getMessage()
+                ],
+                404
+            );
+        }
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $tripId)
+    public function update(Request $request, Trip $trip)
     {
         Log::info("Trip update");
 
@@ -93,10 +119,10 @@ class TripController extends Controller
             if ($user->role_id != self::TRAVELER_ROLE) {
 
                 DB::table('trips')
-                    ->where('id', $tripId)
+                    ->where('id', $trip->id)
                     ->update($request->all());
 
-                $trip = DB::table('trips')->where('id', $tripId)->first();
+                $trip = DB::table('trips')->where('id', $trip->id)->first();
             } else {
 
                 throw new Error('You have no permissions to update this trip');
