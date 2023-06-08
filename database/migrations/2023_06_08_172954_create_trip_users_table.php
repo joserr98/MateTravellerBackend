@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('trips_users', function (Blueprint $table) {
+        Schema::create('trip_users', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
@@ -20,9 +20,7 @@ return new class extends Migration
             $table->timestamps();
             
             $table->unique(['user_id', 'trip_id']);
-
         });
-
     }
 
     /**
@@ -30,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('trips_users');
+        Schema::dropIfExists('trip_users');
     }
 };

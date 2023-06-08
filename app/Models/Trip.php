@@ -21,4 +21,9 @@ class Trip extends Model
     {
         return $this->belongsToMany(User::class);
     }
+
+    public function tripUsers()
+    {
+        return $this->hasMany(TripUser::class);
+    }
 }

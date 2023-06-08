@@ -9,10 +9,20 @@ class TripUser extends Model
 {
     use HasFactory;
 
-    protected $table = 'trips_users';
-
     protected $fillable = [
         'user_id',
         'trip_id',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    // Define the relationship to Trip model
+    public function trip()
+    {
+        return $this->belongsTo(Trip::class, 'trip_id');
+    }
+    
 }

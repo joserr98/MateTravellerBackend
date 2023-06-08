@@ -22,3 +22,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
 });
 Route::get('/trips/{trip}', [TripController::class, 'show']);
 Route::apiResource('/trips', TripController::class)->only(['index']);
+
+// USER TRIPS ROUTES
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('/trips/users/{user}', [TripController::class, 'findTripsFromUser']);
+});

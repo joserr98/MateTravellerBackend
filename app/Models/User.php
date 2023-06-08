@@ -54,4 +54,9 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Trip::class);
     }
+
+    public function tripUsers()
+    {
+        return $this->hasMany(TripUser::class);
+    }
 }

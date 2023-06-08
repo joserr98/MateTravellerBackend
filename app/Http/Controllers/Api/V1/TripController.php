@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Models\Trip;
 use App\Models\TripUser;
+use App\Models\User;
 use Error;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -127,19 +128,19 @@ class TripController extends Controller
 
             $existingTrip = Trip::find($tripId);
 
-            if (!$existingTrip){
+            if (!$existingTrip) {
                 return response()->json(
                     [
                         "success" => true,
                         "message" => "There's no trip available",
                     ],
                     201
-                );   
+                );
             }
 
-            $existingUserTrip = DB::table('trips_users')->where([['trip_id', $tripId],['user_id', $user->id]]);
-            
-            if ($existingUserTrip->exists()){
+            $existingUserTrip = DB::table('trips_users')->where([['trip_id', $tripId], ['user_id', $user->id]]);
+
+            if ($existingUserTrip->exists()) {
                 return response()->json(
                     [
                         "success" => true,
@@ -164,7 +165,6 @@ class TripController extends Controller
                 ],
                 201
             );
-
         } catch (\Throwable $th) {
 
             return response()->json(
@@ -297,6 +297,43 @@ class TripController extends Controller
                 [
                     "success" => false,
                     "message" => "Couldn't delete trip!",
+                    "error" => $th->getMessage()
+                ],
+                500
+            );
+        }
+    }
+
+    public function findTripsFromUser(string $userId)
+    {
+        $user = auth()->user();
+        Log::error("Trips from {$user->id}");
+
+        try {
+
+            if ($user->role_id != self::ADMIN_ROLE && $user->id != $userId) {
+
+                throw new Error('You have no permission');
+            }
+
+            $tripUser = DB::table('users AS u')
+            ->select('tu.user_id', 'tu.trip_id', 'u.name', 'u.lastname', 'u.country', 't.city', 't.description')
+            ->join('trip_users AS tu', 'u.id', '=', 'tu.user_id')
+            ->join('trips AS t', 't.id', '=', 'tu.trip_id')
+            ->where('u.id', $userId)
+            ->get();
+            
+            $total = $tripUser->count();
+
+            return response()->json(['userTrips' => $tripUser, 'count' => $total]);
+        } catch (\Throwable $th) {
+
+            Log::error("Error at getting users' trip");
+
+            return response()->json(
+                [
+                    "success" => false,
+                    "message" => "Couldn't get user's trips",
                     "error" => $th->getMessage()
                 ],
                 500
