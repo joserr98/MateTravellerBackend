@@ -14,6 +14,9 @@ use Illuminate\Support\Facades\Validator as FacadesValidator;
 
 class UserController extends Controller
 {
+
+    CONST ADMIN_ROLE = 3;
+
     public function login(Request $request)
     {
         try {
@@ -225,7 +228,7 @@ class UserController extends Controller
                 $request->merge(['password' => $encryptedPassword]);
             }
 
-            if($user->id == $userId){
+            if($user->id == $userId || $user->role_id == self::ADMIN_ROLE ){
 
                 $updatedUser = User::query()
                 ->where('id', '=', $user->id)
@@ -264,19 +267,29 @@ class UserController extends Controller
 
             $user = auth()->user();
 
-            if($userId == $user->id){
+            if($user->role_id == self::ADMIN_ROLE || $userId == $user->id){
+
                 DB::table('users')->where('id', '=', $user->id)->delete();
 
                 return response()->json(['message' => 'User deleted successfuly'], 201);
             } else {
 
-                return response()->json(['message' => 'User Not Found'], 405);
+                throw new Error ('You have no permission!');
             }
 
             
-        } catch (Exception $e) {
+        } catch (\Throwable $th) {
 
-            return response()->json(['message' => $e->getMessage()]);
+            Log::error("Error at erase user");
+
+            return response()->json(
+                [
+                    "success" => false,
+                    "message" => "Couldn't delete user!",
+                    "error" => $th->getMessage()
+                ],
+                500
+            );
         }
     }
 }
