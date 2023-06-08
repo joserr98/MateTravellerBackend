@@ -4,7 +4,10 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\Trip;
+use App\Models\TripUser;
+use Error;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class TripController extends Controller
@@ -12,6 +15,10 @@ class TripController extends Controller
     /**
      * Display a listing of the resource.
      */
+    const TRAVELER_ROLE = 1;
+    const ORGANIZER_ROLE = 2;
+    const ADMIN_ROLE = 3;
+
     public function index()
     {
         Log::info("Get list of all trips");
@@ -69,8 +76,40 @@ class TripController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Trip $trip)
+    public function destroy(string $idTrip)
     {
-        //
+        try {
+
+            $user = auth()->user();
+
+            if ($user->role_id != self::TRAVELER_ROLE) {
+
+                $trip = DB::table('trips')->where('id', '=', $idTrip);
+                
+                if(!$trip->exists()){
+                    
+                    throw new Error('This trip does not exist!');
+                }
+
+                $trip->delete();
+                
+                return response()->json(['message' => 'Trip deleted successfuly'], 201);
+            } else {
+
+                throw new Error('You have no permission!');
+            }
+        } catch (\Throwable $th) {
+
+            Log::error("Error at erase trip");
+
+            return response()->json(
+                [
+                    "success" => false,
+                    "message" => "Couldn't delete trip!",
+                    "error" => $th->getMessage()
+                ],
+                500
+            );
+        }
     }
 }
