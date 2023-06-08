@@ -24,5 +24,6 @@ Route::delete('/users/{user}', [UserController::class, 'destroy'])->middleware('
 Route::apiResource('/users', UserController::class)->only(['index','show','store']);
 
 // TRIPS MANAGEMENT
+Route::put('/trips/{trip}', [TripController::class, 'update'])->middleware('auth:sanctum');
 Route::delete('/trips/{trip}', [TripController::class, 'destroy'])->middleware('auth:sanctum');
-Route::apiResource('/trips', TripController::class)->only(['index','show','store','update']);
+Route::apiResource('/trips', TripController::class)->only(['index','show','store']);

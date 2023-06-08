@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\Trip;
-use App\Models\TripUser;
 use Error;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -68,9 +67,58 @@ class TripController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Trip $trip)
+    public function update(Request $request, string $tripId)
     {
-        //
+        Log::info("Trip update");
+
+        try {
+
+            $user = auth()->user();
+
+            $start_date = $request->input('start_date');
+            $end_date = $request->input('end_date');
+
+            if ($end_date < $start_date){
+                
+                throw new Error ("End date can't be previous to start date.");
+            }
+            
+            if ($start_date < date('Y-m-d')){
+
+                throw new Error ("Start date can't be previous to today.");
+            }
+
+            if ($user->role_id != self::TRAVELER_ROLE) {
+
+                $updatedTrip =  DB::table('trips')
+                    ->where('id', $tripId)
+                    ->update($request->all());
+            } else {
+
+                throw new Error('You have no permissions to update this trip');
+            }
+
+            return response()->json(
+                [
+                    "success" => true,
+                    "message" => "Trip updated successfuly",
+                    "data" => $updatedTrip
+                ],
+                201
+            );
+        } catch (\Throwable $th) {
+
+            Log::error("Error updating trip");
+
+            return response()->json(
+                [
+                    "success" => false,
+                    "message" => "Couldn't update trip!",
+                    "error" => $th->getMessage()
+                ],
+                500
+            );
+        }
     }
 
     /**
@@ -85,14 +133,14 @@ class TripController extends Controller
             if ($user->role_id != self::TRAVELER_ROLE) {
 
                 $trip = DB::table('trips')->where('id', '=', $idTrip);
-                
-                if(!$trip->exists()){
-                    
+
+                if (!$trip->exists()) {
+
                     throw new Error('This trip does not exist!');
                 }
 
                 $trip->delete();
-                
+
                 return response()->json(['message' => 'Trip deleted successfuly'], 201);
             } else {
 
