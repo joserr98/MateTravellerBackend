@@ -150,8 +150,6 @@ class TripController extends Controller
                 );
             }
 
-
-
             $newTrip = TripUser::create([
                 'trip_id' => $tripId,
                 'user_id' => $user->id
@@ -300,6 +298,57 @@ class TripController extends Controller
                     "error" => $th->getMessage()
                 ],
                 500
+            );
+        }
+    }
+
+    public function tripPagination(Request $request)
+    {
+
+        try {
+            $pageSize = $request->input('page_size', 9);
+            $trips = Trip::paginate($pageSize);
+
+            $currentPage = $trips->currentPage();
+            $totalPages = $trips->lastPage();
+
+            $nextPage = null;
+            if ($trips->hasMorePages()) {
+                $nextPage = $trips->nextPageUrl();
+            }
+
+            $previousPage = null;
+            if ($trips->currentPage() > 1) {
+                $previousPage = $trips->previousPageUrl();
+            }
+
+            $responseData = [
+                'data' => $trips->items(),
+                'current_page' => $currentPage,
+                'total_pages' => $totalPages,
+                'next_page' => $nextPage,
+                'previous_page' => $previousPage,
+            ];
+
+            return response()->json(
+                [
+                    "success" => true,
+                    "message" => "Trips retrieved successfuly",
+                    "data" => $responseData
+                ],
+                201
+            );
+        } catch (\Throwable $th) {
+
+            Log::error("Error getting trips:" . $th->getMessage());
+
+            return response()->json(
+                [
+                    "success" => true,
+                    "message" => "Couldnt retrieve trips",
+                    "data" => $th->getMessage()
+                ],
+                201
             );
         }
     }

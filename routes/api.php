@@ -21,6 +21,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::put('/trips/{trip}', [TripController::class, 'update']);
     Route::delete('/trips/{trip}', [TripController::class, 'destroy']);
 });
+Route::get('/trips/pages', [TripController::class, 'tripPagination']);
 Route::get('/trips/{trip}', [TripController::class, 'show']);
 Route::apiResource('/trips', TripController::class)->only(['index']);
 
