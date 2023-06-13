@@ -55,7 +55,7 @@ class TripUserController extends Controller
         try {
 
             $usersFromTrip = DB::table('users AS u')
-                ->select('tu.user_id', 'tu.trip_id', 'u.name', 'u.lastname', 'u.country', 't.city', 't.description')
+                ->select('tu.user_id', 'tu.trip_id', 'u.name', 'u.lastname', 'u.country', 't.city', 't.description', 'u.birthday')
                 ->join('trip_users AS tu', 'u.id', '=', 'tu.user_id')
                 ->join('trips AS t', 't.id', '=', 'tu.trip_id')
                 ->where([['t.id', $tripId], ['tu.role_id', '1']])
@@ -86,7 +86,7 @@ class TripUserController extends Controller
         try {
 
             $usersFromTrip = DB::table('users AS u')
-                ->select('tu.user_id', 'tu.trip_id', 'u.name', 'u.lastname', 'u.country', 't.city', 't.description')
+                ->select('tu.user_id', 'tu.trip_id', 'u.name', 'u.lastname', 'u.country', 't.city', 't.description', 'u.birthday')
                 ->join('trip_users AS tu', 'u.id', '=', 'tu.user_id')
                 ->join('trips AS t', 't.id', '=', 'tu.trip_id')
                 ->where([['t.id', $tripId], ['tu.role_id', '<>' ,'1']])

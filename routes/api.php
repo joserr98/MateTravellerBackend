@@ -28,6 +28,6 @@ Route::apiResource('/trips', TripController::class)->only(['index']);
 // USER TRIPS ROUTES
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/trips/users/{user}', [TripUserController::class, 'findTripsFromUser']);
+});
     Route::get('/users/organizer/trips/{trip}', [TripUserController::class, 'findOrganizerFromTrip']);
     Route::get('/users/travelers/trips/{trip}', [TripUserController::class, 'findTravelersFromTrip']);
-});
