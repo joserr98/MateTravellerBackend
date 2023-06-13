@@ -12,6 +12,7 @@ class TripUser extends Model
     protected $fillable = [
         'user_id',
         'trip_id',
+        'role_id'
     ];
 
     public function user()

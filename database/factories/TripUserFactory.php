@@ -15,6 +15,7 @@ class TripUserFactory extends Factory
         return [
             'user_id' => rand(1,20),
             'trip_id' => rand(1,100),
+            'role_id' => rand(1,2)
         ];
     }
 }

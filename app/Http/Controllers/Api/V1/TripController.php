@@ -92,7 +92,8 @@ class TripController extends Controller
 
             TripUser::create([
                 'trip_id' => $trip->id,
-                'user_id' => $user->id
+                'user_id' => $user->id,
+                'role_id' => self::ORGANIZER_ROLE
             ]);
 
             return response()->json(
@@ -152,7 +153,8 @@ class TripController extends Controller
 
             $newTrip = TripUser::create([
                 'trip_id' => $tripId,
-                'user_id' => $user->id
+                'user_id' => $user->id,
+                'role_id' => self::TRAVELER_ROLE
             ]);
 
             return response()->json(

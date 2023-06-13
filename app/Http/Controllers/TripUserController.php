@@ -48,7 +48,7 @@ class TripUserController extends Controller
         }
     }
 
-    public function findUsersFromTrip(string $tripId)
+    public function findTravelersFromTrip(string $tripId)
     {
         Log::error("Users from {$tripId} trip");
 
@@ -58,7 +58,38 @@ class TripUserController extends Controller
                 ->select('tu.user_id', 'tu.trip_id', 'u.name', 'u.lastname', 'u.country', 't.city', 't.description')
                 ->join('trip_users AS tu', 'u.id', '=', 'tu.user_id')
                 ->join('trips AS t', 't.id', '=', 'tu.trip_id')
-                ->where('t.id', $tripId)
+                ->where([['t.id', $tripId], ['tu.role_id', '1']])
+                ->get();
+
+            $total = $usersFromTrip->count();
+
+            return response()->json(['usersFromTrip' => $usersFromTrip, 'count' => $total]);
+        } catch (\Throwable $th) {
+
+            Log::error("Error at getting users' trip");
+
+            return response()->json(
+                [
+                    "success" => false,
+                    "message" => "Couldn't get user's trips",
+                    "error" => $th->getMessage()
+                ],
+                500
+            );
+        }
+    }
+
+    public function findOrganizerFromTrip(string $tripId)
+    {
+        Log::error("Users from {$tripId} trip");
+
+        try {
+
+            $usersFromTrip = DB::table('users AS u')
+                ->select('tu.user_id', 'tu.trip_id', 'u.name', 'u.lastname', 'u.country', 't.city', 't.description')
+                ->join('trip_users AS tu', 'u.id', '=', 'tu.user_id')
+                ->join('trips AS t', 't.id', '=', 'tu.trip_id')
+                ->where([['t.id', $tripId], ['tu.role_id', '<>' ,'1']])
                 ->get();
 
             $total = $usersFromTrip->count();
