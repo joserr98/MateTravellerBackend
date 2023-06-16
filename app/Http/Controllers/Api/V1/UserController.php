@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Validator as FacadesValidator;
 class UserController extends Controller
 {
 
-    CONST ADMIN_ROLE = 3;
+    const ADMIN_ROLE = 3;
 
     public function login(Request $request)
     {
@@ -222,20 +222,20 @@ class UserController extends Controller
 
             $user = auth()->user();
             $password = $request->input('password');
-            
+
             if ($password) {
                 $encryptedPassword = bcrypt($password);
                 $request->merge(['password' => $encryptedPassword]);
             }
 
-            if($user->id == $userId || $user->role_id == self::ADMIN_ROLE ){
+            if ($user->id == $userId || $user->role_id == self::ADMIN_ROLE) {
 
                 $updatedUser = User::query()
-                ->where('id', '=', $user->id)
-                ->update($request->all());
+                    ->where('id', '=', $user->id)
+                    ->update($request->all());
             } else {
 
-                throw new Error ('You have no permissions to update this user');
+                throw new Error('You have no permissions to update this user');
             }
 
             return response()->json(
@@ -267,17 +267,15 @@ class UserController extends Controller
 
             $user = auth()->user();
 
-            if($user->role_id == self::ADMIN_ROLE || $userId == $user->id){
+            if ($user->role_id == self::ADMIN_ROLE || $userId == $user->id) {
 
-                DB::table('users')->where('id', '=', $user->id)->delete();
+                DB::table('users')->where('id', '=', $userId)->delete();
 
                 return response()->json(['message' => 'User deleted successfuly'], 201);
             } else {
 
-                throw new Error ('You have no permission!');
+                throw new Error('You have no permission!');
             }
-
-            
         } catch (\Throwable $th) {
 
             Log::error("Error at erase user");
@@ -289,6 +287,101 @@ class UserController extends Controller
                     "error" => $th->getMessage()
                 ],
                 500
+            );
+        }
+    }
+
+    public function userPagination(Request $request)
+    {
+
+        try {
+            $pageSize = $request->input('page_size', 10);
+            $users = User::paginate($pageSize);
+
+            $currentPage = $users->currentPage();
+            $totalPages = $users->lastPage();
+
+            $nextPage = null;
+            if ($users->hasMorePages()) {
+                $nextPage = $users->nextPageUrl();
+            }
+
+            $previousPage = null;
+            if ($users->currentPage() > 1) {
+                $previousPage = $users->previousPageUrl();
+            }
+
+            $responseData = [
+                'data' => $users->items(),
+                'current_page' => $currentPage,
+                'total_pages' => $totalPages,
+                'next_page' => $nextPage,
+                'previous_page' => $previousPage,
+            ];
+
+            return response()->json(
+                [
+                    "success" => true,
+                    "message" => "Users retrieved successfuly",
+                    "data" => $responseData
+                ],
+                201
+            );
+        } catch (\Throwable $th) {
+
+            Log::error("Error getting users:" . $th->getMessage());
+
+            return response()->json(
+                [
+                    "success" => true,
+                    "message" => "Couldnt retrieve users",
+                    "data" => $th->getMessage()
+                ],
+                201
+            );
+        }
+    }
+
+    public function userByName(Request $request)
+    {
+        Log::info("Get users filtered by name");
+
+        try {
+            $filter = $request->query('filter');
+
+
+            $usersQuery = User::query();
+
+            if ($filter) {
+                $usersQuery->where(function ($query) use ($filter) {
+                    $query->where('name', 'like', '%' . $filter . '%')
+                        ->orWhere('lastname', 'like', '%' . $filter . '%')
+                        ->orWhere('country', 'like', '%' . $filter . '%')
+                        ->orWhere('email', 'like', '%' . $filter . '%');
+                });
+            }
+            
+            $users = $usersQuery->get();
+
+            return response()->json(
+                [
+                    "success" => true,
+                    "message" => "Users retrieved successfuly",
+                    "data" => $users
+                ],
+                201
+            );
+        } catch (\Throwable $th) {
+
+            Log::error("Error getting users:" . $th->getMessage());
+
+            return response()->json(
+                [
+                    "success" => true,
+                    "message" => "Couldnt retrieve users",
+                    "data" => $th->getMessage()
+                ],
+                201
             );
         }
     }

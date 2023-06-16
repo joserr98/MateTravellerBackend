@@ -11,6 +11,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::patch('/users/{user}', [UserController::class, 'update']);
     Route::delete('/users/{user}', [UserController::class, 'destroy']);
 });
+Route::get('/users/filter', [UserController::class, 'userByName']);
+Route::get('/users/pages', [UserController::class, 'userPagination']);
 Route::post('/login', [UserController::class, 'login']);
 Route::apiResource('/users', UserController::class)->only(['index', 'store']);
 
