@@ -16,8 +16,9 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class
         ]);
 
-        \App\Models\User::factory(20)->create();
+        \App\Models\User::factory(30)->create();
         \App\Models\Trip::factory(100)->create();
+        \App\Models\Message::factory(50)->create();
         \App\Models\TripUser::factory(200)->create();
 
         // \App\Models\User::factory()->create([
