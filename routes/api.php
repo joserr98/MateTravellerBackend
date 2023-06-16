@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\V1\UserController;
 use App\Http\Controllers\Api\V1\TripController;
+use App\Http\Controllers\MessageController;
 use App\Http\Controllers\TripUserController;
 
 // USERS ROUTES
@@ -34,3 +35,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
 Route::get('/users/organizer/trips/{trip}', [TripUserController::class, 'findOrganizerFromTrip']);
 Route::get('/users/travelers/trips/{trip}', [TripUserController::class, 'findTravelersFromTrip']);
     
+// MESSAGE ROUTES
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('/messages/{user}', [MessageController::class, 'index']);
+    Route::post('/messages', [MessageController::class, 'store']);
+});
