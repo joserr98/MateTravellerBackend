@@ -12,7 +12,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::delete('/users/{user}', [UserController::class, 'destroy']);
 });
 Route::post('/login', [UserController::class, 'login']);
-Route::apiResource('/users', UserController::class)->only(['index','store']);
+Route::apiResource('/users', UserController::class)->only(['index', 'store']);
 
 // TRIPS ROUTES
 Route::middleware(['auth:sanctum'])->group(function () {
@@ -29,5 +29,6 @@ Route::apiResource('/trips', TripController::class)->only(['index']);
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/trips/users/{user}', [TripUserController::class, 'findTripsFromUser']);
 });
-    Route::get('/users/organizer/trips/{trip}', [TripUserController::class, 'findOrganizerFromTrip']);
-    Route::get('/users/travelers/trips/{trip}', [TripUserController::class, 'findTravelersFromTrip']);
+Route::get('/users/organizer/trips/{trip}', [TripUserController::class, 'findOrganizerFromTrip']);
+Route::get('/users/travelers/trips/{trip}', [TripUserController::class, 'findTravelersFromTrip']);
+    

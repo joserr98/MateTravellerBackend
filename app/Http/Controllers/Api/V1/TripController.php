@@ -139,7 +139,7 @@ class TripController extends Controller
                 );
             }
 
-            $existingUserTrip = DB::table('trips_users')->where([['trip_id', $tripId], ['user_id', $user->id]]);
+            $existingUserTrip = DB::table('trip_users')->where([['trip_id', $tripId], ['user_id', $user->id]]);
 
             if ($existingUserTrip->exists()) {
                 return response()->json(

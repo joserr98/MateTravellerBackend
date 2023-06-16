@@ -24,7 +24,7 @@ class TripUserController extends Controller
             }
 
             $tripsFromUser = DB::table('users AS u')
-                ->select('tu.user_id', 'tu.trip_id', 'u.name', 'u.lastname', 'u.country', 't.city', 't.description')
+                ->select('tu.user_id', 't.id', 'u.name', 'u.lastname', 'u.country', 't.city', 't.description', 't.start_date', 't.end_date')
                 ->join('trip_users AS tu', 'u.id', '=', 'tu.user_id')
                 ->join('trips AS t', 't.id', '=', 'tu.trip_id')
                 ->where('u.id', $userId)
