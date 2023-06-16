@@ -19,7 +19,6 @@ class MessageFactory extends Factory
         return [
             'sender_id' => rand(1,30),
             'recipient_id' =>rand(1,30),
-            'sent_date' => fake()->date(),
             'description' => fake()->text()
         ];
 

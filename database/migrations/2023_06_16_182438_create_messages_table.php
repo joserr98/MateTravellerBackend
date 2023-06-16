@@ -18,7 +18,6 @@ return new class extends Migration
             $table->unsignedBigInteger('recipient_id');
             $table->foreign('recipient_id')->references('id')->on('users')->onDelete('cascade');
             $table->string('description');
-            $table->date('sent_date');
             $table->timestamps();
         });
     }

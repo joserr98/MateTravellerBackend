@@ -13,8 +13,7 @@ class Message extends Model
     protected $fillable = [
         'sender_id',
         'recipient_id',
-        'description',
-        'sent_date'
+        'description'
     ];
 
     public function users(): HasMany
