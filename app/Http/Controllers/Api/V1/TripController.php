@@ -380,11 +380,11 @@ class TripController extends Controller
 
             return response()->json(
                 [
-                    "success" => true,
+                    "success" => false,
                     "message" => "Couldnt retrieve trips",
                     "data" => $th->getMessage()
                 ],
-                201
+                500
             );
         }
     }
