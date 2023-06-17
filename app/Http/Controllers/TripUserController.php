@@ -66,6 +66,7 @@ class TripUserController extends Controller
             ]);
 
             if (!$newTrip) {
+
                 return response()->json(
                     [
                         "success" => true,
@@ -116,6 +117,7 @@ class TripUserController extends Controller
             }
 
             if ($user->role_id != self::ADMIN_ROLE && $user->id != $userId) {
+
                 return response()->json(
                     [
                         "success" => true,
@@ -133,6 +135,7 @@ class TripUserController extends Controller
                 ->get();
 
             if (!$tripsFromUser) {
+
                 return response()->json(
                     [
                         "success" => true,
@@ -174,6 +177,7 @@ class TripUserController extends Controller
                 ->get();
 
             if (!$usersFromTrip) {
+
                 return response()->json(
                     [
                         "success" => true,
@@ -217,6 +221,7 @@ class TripUserController extends Controller
             $total = $usersFromTrip->count();
 
             if (!$usersFromTrip) {
+                
                 return response()->json(
                     [
                         "success" => true,

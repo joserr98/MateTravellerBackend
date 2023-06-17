@@ -40,6 +40,7 @@ class MessageController extends Controller
                 ->get();
 
             if (!$message) {
+
                 return response()->json(
                     [
                         "success" => true,
@@ -82,6 +83,7 @@ class MessageController extends Controller
             $user = auth()->user();
 
             if (!$user) {
+
                 return response()->json(
                     [
                         "success" => true,
@@ -118,6 +120,7 @@ class MessageController extends Controller
             ]);
 
             if (!$message) {
+                
                 return response()->json(
                     [
                         "success" => true,
@@ -126,7 +129,7 @@ class MessageController extends Controller
                     404
                 );
             }
-            
+
             return response()->json(
                 [
                     "success" => true,

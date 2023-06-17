@@ -287,7 +287,22 @@ class UserController extends Controller
                 $request->merge(['password' => $encryptedPassword]);
             }
 
+            $userSearch = User::query()->where('id', '=', $user->id)->get();
+            $userPassword = $userSearch->first()->password;
+
+            if (!Hash::check($password, $userPassword)) {
+
+                return response()->json(
+                    [
+                        "success" => true,
+                        "message" => "Incorrect password",
+                    ],
+                    400
+                );
+            }
+
             if ($user->id != $userId && $user->role_id != self::ADMIN_ROLE) {
+
                 return response()->json(
                     [
                         "success" => true,
@@ -302,6 +317,7 @@ class UserController extends Controller
                 ->update($request->all());
 
             if (!$updatedUser) {
+
                 return response()->json(
                     [
                         "success" => false,
@@ -341,6 +357,7 @@ class UserController extends Controller
             $user = auth()->user();
 
             if (!$user) {
+
                 return response()->json(
                     [
                         "success" => true,
@@ -351,6 +368,7 @@ class UserController extends Controller
             }
 
             if ($user->role_id != self::ADMIN_ROLE && $userId != $user->id) {
+
                 return response()->json(
                     [
                         "success" => true,
@@ -408,6 +426,7 @@ class UserController extends Controller
             ];
 
             if (!$responseData) {
+
                 return response()->json(
                     [
                         "success" => true,
@@ -461,6 +480,7 @@ class UserController extends Controller
             $users = $usersQuery->get();
 
             if (!$users) {
+                
                 return response()->json(
                     [
                         "success" => true,
