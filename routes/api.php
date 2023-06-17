@@ -20,7 +20,6 @@ Route::apiResource('/users', UserController::class)->only(['index', 'store']);
 // TRIPS ROUTES
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/trips', [TripController::class, 'store']);
-    Route::post('/trips/{trip}', [TripUserController::class, 'join']);
     Route::put('/trips/{trip}', [TripController::class, 'update']);
     Route::delete('/trips/{trip}', [TripController::class, 'destroy']);
 });
@@ -30,6 +29,7 @@ Route::apiResource('/trips', TripController::class)->only(['index']);
 
 // USER TRIPS ROUTES
 Route::middleware(['auth:sanctum'])->group(function () {
+    Route::post('/trips/{trip}', [TripUserController::class, 'join']);
     Route::get('/trips/users/{user}', [TripUserController::class, 'findTripsFromUser']);
 });
 Route::get('/users/organizer/trips/{trip}', [TripUserController::class, 'findOrganizerFromTrip']);

@@ -33,17 +33,6 @@ class TripUserController extends Controller
                 );
             }
 
-            if ($user->role_id == self::TRAVELER_ROLE) {
-
-                return response()->json(
-                    [
-                        "success" => true,
-                        "message" => "Unauthorized",
-                    ],
-                    403
-                );
-            }
-
             $existingTrip = Trip::find($tripId);
 
             if (!$existingTrip) {
