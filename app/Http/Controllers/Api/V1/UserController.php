@@ -351,7 +351,7 @@ class UserController extends Controller
                 ->where('id', '=', $user->id)
                 ->update($request->all());
 
-            if (!$updatedUser) {
+            if ($updatedUser == 0) {
 
                 return response()->json(
                     [
