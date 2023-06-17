@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Message;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
@@ -120,7 +119,7 @@ class MessageController extends Controller
             ]);
 
             if (!$message) {
-                
+
                 return response()->json(
                     [
                         "success" => true,

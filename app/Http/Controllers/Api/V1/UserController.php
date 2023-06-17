@@ -4,13 +4,12 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use Error;
-use Exception;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Validator as FacadesValidator;
+use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
 {
@@ -21,7 +20,7 @@ class UserController extends Controller
     public function login(Request $request)
     {
         try {
-            $validator = FacadesValidator::make($request->all(), [
+            $validator = Validator::make($request->all(), [
                 'email' => 'required | email',
                 'password' => 'required'
             ]);
@@ -137,7 +136,7 @@ class UserController extends Controller
     {
         try {
 
-            $validator = FacadesValidator::make($request->all(), [
+            $validator = Validator::make($request->all(), [
                 'name' => 'required',
                 'email' => 'required | unique:users,email',
                 'password' => 'required | min:6',
@@ -281,6 +280,42 @@ class UserController extends Controller
             }
 
             $password = $request->input('password');
+            $birthday = $request->input('birthday');
+            $email = $request->input('email');
+
+            if ($email) {
+                $validator = Validator::make($request->all(), [
+                    'email' => 'required|email',
+                ]);
+                if ($validator->fails()) {
+
+                    return response()->json(['message' => 'Invalid email'], 400);
+                }
+            }
+
+            if (!$password) {
+                return response()->json(
+                    [
+                        "success" => true,
+                        "message" => "Empty password",
+                    ],
+                    400
+                );
+            }
+
+            $birthday = Carbon::createFromFormat('Y-m-d', $birthday);
+            $today = Carbon::today();
+            $age = $birthday->diffInYears($today);
+
+            if ($age < 16) {
+                return response()->json(
+                    [
+                        "success" => true,
+                        "message" => "You must be over 16 years old",
+                    ],
+                    400
+                );
+            }
 
             if ($password) {
                 $encryptedPassword = bcrypt($password);
@@ -480,7 +515,7 @@ class UserController extends Controller
             $users = $usersQuery->get();
 
             if (!$users) {
-                
+
                 return response()->json(
                     [
                         "success" => true,
