@@ -28,7 +28,14 @@ class MessageController extends Controller
                 );
             }
 
-            $message = Message::query()->where('sender_id', $userId)->orWhere('recipient_id', $userId)->get();
+            $message = Message::query()
+    ->select('messages.*', 'senders.name as sender_name', 'recipients.name as recipient_name')
+    ->join('users as senders', 'messages.sender_id', '=', 'senders.id')
+    ->join('users as recipients', 'messages.recipient_id', '=', 'recipients.id')
+    ->where('messages.sender_id', $userId)
+    ->orWhere('messages.recipient_id', $userId)
+    ->orderBy('id', 'DESC')
+    ->get();
 
             return response()->json(
                 [
