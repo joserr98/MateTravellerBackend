@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Validator;
 
 class MessageController extends Controller
 {
+
+    // GET ALL MESSAGES
     public function index(string $userId)
     {
         Log::info("Get list of all messages from user");
@@ -22,20 +24,30 @@ class MessageController extends Controller
                 return response()->json(
                     [
                         "success" => true,
-                        "message" => "Auth required",
+                        "message" => "No user found",
                     ],
-                    201
+                    401
                 );
             }
 
             $message = Message::query()
-    ->select('messages.*', 'senders.name as sender_name', 'recipients.name as recipient_name')
-    ->join('users as senders', 'messages.sender_id', '=', 'senders.id')
-    ->join('users as recipients', 'messages.recipient_id', '=', 'recipients.id')
-    ->where('messages.sender_id', $userId)
-    ->orWhere('messages.recipient_id', $userId)
-    ->orderBy('id', 'DESC')
-    ->get();
+                ->select('messages.*', 'senders.name as sender_name', 'recipients.name as recipient_name')
+                ->join('users as senders', 'messages.sender_id', '=', 'senders.id')
+                ->join('users as recipients', 'messages.recipient_id', '=', 'recipients.id')
+                ->where('messages.sender_id', $userId)
+                ->orWhere('messages.recipient_id', $userId)
+                ->orderBy('id', 'DESC')
+                ->get();
+
+            if (!$message) {
+                return response()->json(
+                    [
+                        "success" => true,
+                        "message" => "Couldn't retrieve messages!",
+                    ],
+                    404
+                );
+            }
 
             return response()->json(
                 [
@@ -51,15 +63,16 @@ class MessageController extends Controller
 
             return response()->json(
                 [
-                    "success" => true,
+                    "success" => false,
                     "message" => "Couldnt retrieve messages",
                     "data" => $th->getMessage()
                 ],
-                201
+                500
             );
         }
     }
 
+    // CREATE NEW MESSAGE
     public function store(Request $request)
     {
         Log::info("Send message");
@@ -67,6 +80,16 @@ class MessageController extends Controller
         try {
 
             $user = auth()->user();
+
+            if (!$user) {
+                return response()->json(
+                    [
+                        "success" => true,
+                        "message" => "No user found",
+                    ],
+                    401
+                );
+            }
 
             $validator = Validator::make($request->all(), [
                 'description' => 'required',
@@ -78,7 +101,7 @@ class MessageController extends Controller
                 return response()->json(
                     [
                         "success" => true,
-                        "message" => "Body validation fails",
+                        "message" => "Description missing!",
                         "errors" => $validator->errors()
                     ],
                     400
@@ -94,6 +117,16 @@ class MessageController extends Controller
                 'description' => $description
             ]);
 
+            if (!$message) {
+                return response()->json(
+                    [
+                        "success" => true,
+                        "message" => "Couldn't retrieve messages!",
+                    ],
+                    404
+                );
+            }
+            
             return response()->json(
                 [
                     "success" => true,
