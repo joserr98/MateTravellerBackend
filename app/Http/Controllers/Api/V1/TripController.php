@@ -5,8 +5,6 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Models\Trip;
 use App\Models\TripUser;
-use App\Models\User;
-use Error;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -19,6 +17,7 @@ class TripController extends Controller
     const ORGANIZER_ROLE = 2;
     const ADMIN_ROLE = 3;
 
+    // LIST ALL TRIPS
     public function index()
     {
         Log::info("Get list of all trips");
@@ -40,24 +39,42 @@ class TripController extends Controller
 
             return response()->json(
                 [
-                    "success" => true,
+                    "success" => false,
                     "message" => "Couldnt retrieve trips",
                     "data" => $th->getMessage()
                 ],
-                201
+                500
             );
         }
     }
 
+    // STORE TRIPS
     public function store(Request $request)
     {
         try {
 
             $user = auth()->user();
 
+            if (!$user) {
+
+                return response()->json(
+                    [
+                        "success" => true,
+                        "message" => "No user found",
+                    ],
+                    401
+                );
+            }
+
             if ($user->role_id == self::TRAVELER_ROLE) {
 
-                throw new Error('You cannot create trips');
+                return response()->json(
+                    [
+                        "success" => true,
+                        "message" => "Unauthorized",
+                    ],
+                    403
+                );
             }
 
             $validator = Validator::make($request->all(), [
@@ -71,8 +88,7 @@ class TripController extends Controller
                 return response()->json(
                     [
                         "success" => true,
-                        "message" => "Body validation fails",
-                        "errors" => $validator->errors()
+                        "message" => "Data missing",
                     ],
                     400
                 );
@@ -102,7 +118,7 @@ class TripController extends Controller
                     "message" => "New trip created",
                     "data" => $trip,
                 ],
-                200
+                201
             );
         } catch (\Throwable $th) {
 
@@ -119,65 +135,7 @@ class TripController extends Controller
         }
     }
 
-    public function join(string $tripId)
-    {
-        Log::info("Add to trip {$tripId}");
-
-        try {
-
-            $user = auth()->user();
-
-            $existingTrip = Trip::find($tripId);
-
-            if (!$existingTrip) {
-                return response()->json(
-                    [
-                        "success" => true,
-                        "message" => "There's no trip available",
-                    ],
-                    201
-                );
-            }
-
-            $existingUserTrip = DB::table('trip_users')->where([['trip_id', $tripId], ['user_id', $user->id]]);
-
-            if ($existingUserTrip->exists()) {
-                return response()->json(
-                    [
-                        "success" => true,
-                        "message" => "You are already joined to this trip",
-                    ],
-                    201
-                );
-            }
-
-            $newTrip = TripUser::create([
-                'trip_id' => $tripId,
-                'user_id' => $user->id,
-                'role_id' => self::TRAVELER_ROLE
-            ]);
-
-            return response()->json(
-                [
-                    "success" => true,
-                    "message" => "Joined to the trip",
-                    "data" => $newTrip
-                ],
-                201
-            );
-        } catch (\Throwable $th) {
-
-            return response()->json(
-                [
-                    "success" => false,
-                    "message" => "Couldnt join trip",
-                    "data" => $th->getMessage()
-                ],
-                500
-            );
-        }
-    }
-
+    // GET INFORMATION FROM SINGLE TRIP 
     public function show(Trip $trip)
     {
         Log::info("Get Trip {$trip->id}");
@@ -185,6 +143,17 @@ class TripController extends Controller
         try {
 
             $trip = Trip::query()->where('id', '=', $trip->id)->get();
+
+            if (!$trip) {
+
+                return response()->json(
+                    [
+                        "success" => true,
+                        "message" => "There is no trip",
+                    ],
+                    404
+                );
+            }
 
             return response()->json(
                 [
@@ -204,11 +173,12 @@ class TripController extends Controller
                     "message" => "Couldnt retrieve trip",
                     "data" => $th->getMessage()
                 ],
-                404
+                500
             );
         }
     }
 
+    // UPDATE TRIP INFORMATION
     public function update(Request $request, Trip $trip)
     {
         Log::info("Trip update");
@@ -217,31 +187,70 @@ class TripController extends Controller
 
             $user = auth()->user();
 
+            if (!$user) {
+
+                return response()->json(
+                    [
+                        "success" => true,
+                        "message" => "No user found",
+                    ],
+                    401
+                );
+            }
+
             if ($request->input('start_date') || $request->input('end_date')) {
                 $start_date = $request->input('start_date');
                 $end_date = $request->input('end_date');
 
                 if ($end_date < $start_date) {
 
-                    throw new Error("End date can't be previous to start date.");
+                    return response()->json(
+                        [
+                            "success" => true,
+                            "message" => "End date can't be previous to start date.",
+                        ],
+                        400
+                    );
                 }
 
                 if ($start_date < date('Y-m-d')) {
 
-                    throw new Error("Start date can't be previous to today.");
+                    return response()->json(
+                        [
+                            "success" => true,
+                            "message" => "Start date can't be previous to today.",
+                        ],
+                        400
+                    );
                 }
             }
 
-            if ($user->role_id != self::TRAVELER_ROLE) {
+            if ($user->role_id == self::TRAVELER_ROLE) {
+                
+                return response()->json(
+                    [
+                        "success" => true,
+                        "message" => "Unauthorized",
+                    ],
+                    403
+                );
+            }
 
-                DB::table('trips')
-                    ->where('id', $trip->id)
-                    ->update($request->all());
+            DB::table('trips')
+                ->where('id', $trip->id)
+                ->update($request->all());
 
-                $trip = DB::table('trips')->where('id', $trip->id)->first();
-            } else {
+            $trip = DB::table('trips')->where('id', $trip->id)->first();
 
-                throw new Error('You have no permissions to update this trip');
+            if (!$trip) {
+
+                return response()->json(
+                    [
+                        "success" => true,
+                        "message" => "No trip found",
+                    ],
+                    404
+                );
             }
 
             return response()->json(
@@ -267,28 +276,51 @@ class TripController extends Controller
         }
     }
 
+    // DELETE TRIP
     public function destroy(string $idTrip)
     {
         try {
 
             $user = auth()->user();
 
-            if ($user->role_id != self::TRAVELER_ROLE) {
+            if (!$user) {
 
-                $trip = DB::table('trips')->where('id', '=', $idTrip);
-
-                if (!$trip->exists()) {
-
-                    throw new Error('This trip does not exist!');
-                }
-
-                $trip->delete();
-
-                return response()->json(['message' => 'Trip deleted successfuly'], 201);
-            } else {
-
-                throw new Error('You have no permission!');
+                return response()->json(
+                    [
+                        "success" => true,
+                        "message" => "No user found",
+                    ],
+                    401
+                );
             }
+
+            if ($user->role_id == self::TRAVELER_ROLE) {
+
+                return response()->json(
+                    [
+                        "success" => true,
+                        "message" => "Unauthorized",
+                    ],
+                    403
+                );
+            }
+
+            $trip = DB::table('trips')->where('id', '=', $idTrip);
+
+            if (!$trip->exists()) {
+
+                return response()->json(
+                    [
+                        "success" => false,
+                        "message" => "This trip does not exist!",
+                    ],
+                    404
+                );
+            }
+
+            $trip->delete();
+
+            return response()->json(['message' => 'Trip deleted successfuly'], 201);
         } catch (\Throwable $th) {
 
             Log::error("Error at erase trip");
@@ -304,8 +336,10 @@ class TripController extends Controller
         }
     }
 
+    // GET TRIPS BY PAGINATION
     public function tripPagination(Request $request)
     {
+        Log::error("Get trips paginated");
 
         try {
             $pageSize = $request->input('page_size', 9);
@@ -342,7 +376,7 @@ class TripController extends Controller
             );
         } catch (\Throwable $th) {
 
-            Log::error("Error getting trips:" . $th->getMessage());
+            Log::error("Error getting trips paginated:" . $th->getMessage());
 
             return response()->json(
                 [
