@@ -76,6 +76,16 @@ class TripUserController extends Controller
                 'role_id' => self::TRAVELER_ROLE
             ]);
 
+            if (!$newTrip) {
+                return response()->json(
+                    [
+                        "success" => true,
+                        "message" => "Couldn't create trip!",
+                    ],
+                    404
+                );
+            }
+
             return response()->json(
                 [
                     "success" => true,
@@ -99,14 +109,31 @@ class TripUserController extends Controller
 
     public function findTripsFromUser(string $userId)
     {
-        $user = auth()->user();
-        Log::error("Trips from {$user->id}");
+        Log::error("Trips from users");
 
         try {
 
-            if ($user->role_id != self::ADMIN_ROLE && $user->id != $userId) {
+            $user = auth()->user();
 
-                throw new Error('You have no permission');
+            if (!$user) {
+
+                return response()->json(
+                    [
+                        "success" => true,
+                        "message" => "No user found",
+                    ],
+                    401
+                );
+            }
+
+            if ($user->role_id != self::ADMIN_ROLE && $user->id != $userId) {
+                return response()->json(
+                    [
+                        "success" => true,
+                        "message" => "Unauthorized",
+                    ],
+                    403
+                );
             }
 
             $tripsFromUser = DB::table('users AS u')
@@ -115,6 +142,16 @@ class TripUserController extends Controller
                 ->join('trips AS t', 't.id', '=', 'tu.trip_id')
                 ->where('u.id', $userId)
                 ->get();
+
+            if (!$tripsFromUser) {
+                return response()->json(
+                    [
+                        "success" => true,
+                        "message" => "Couldn't get trips from user!",
+                    ],
+                    404
+                );
+            }
 
             $total = $tripsFromUser->count();
 
@@ -147,6 +184,16 @@ class TripUserController extends Controller
                 ->where([['t.id', $tripId], ['tu.role_id', '1']])
                 ->get();
 
+            if (!$usersFromTrip) {
+                return response()->json(
+                    [
+                        "success" => true,
+                        "message" => "Couldn't get users trom trip!",
+                    ],
+                    404
+                );
+            }
+
             $total = $usersFromTrip->count();
 
             return response()->json(['usersFromTrip' => $usersFromTrip, 'count' => $total]);
@@ -175,10 +222,20 @@ class TripUserController extends Controller
                 ->select('tu.user_id', 'tu.trip_id', 'u.name', 'u.lastname', 'u.country', 't.city', 't.description', 'u.birthday')
                 ->join('trip_users AS tu', 'u.id', '=', 'tu.user_id')
                 ->join('trips AS t', 't.id', '=', 'tu.trip_id')
-                ->where([['t.id', $tripId], ['tu.role_id', '<>' ,'1']])
+                ->where([['t.id', $tripId], ['tu.role_id', '<>', '1']])
                 ->get();
 
             $total = $usersFromTrip->count();
+
+            if (!$usersFromTrip) {
+                return response()->json(
+                    [
+                        "success" => true,
+                        "message" => "Couldn't get users trom trip!",
+                    ],
+                    404
+                );
+            }
 
             return response()->json(['usersFromTrip' => $usersFromTrip, 'count' => $total]);
         } catch (\Throwable $th) {
