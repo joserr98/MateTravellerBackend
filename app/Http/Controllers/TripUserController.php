@@ -2,14 +2,100 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Trip;
+use App\Models\TripUser;
 use Error;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class TripUserController extends Controller
 {
+    const TRAVELER_ROLE = 1;
     const ADMIN_ROLE = 3;
+
+    // ADD USER TO A TRIP
+    public function join(string $tripId)
+    {
+        Log::info("Add to trip {$tripId}");
+
+        try {
+
+            $user = auth()->user();
+
+            if (!$user) {
+
+                return response()->json(
+                    [
+                        "success" => true,
+                        "message" => "No user found",
+                    ],
+                    401
+                );
+            }
+
+            if ($user->role_id == self::TRAVELER_ROLE) {
+
+                return response()->json(
+                    [
+                        "success" => true,
+                        "message" => "Unauthorized",
+                    ],
+                    403
+                );
+            }
+
+            $existingTrip = Trip::find($tripId);
+
+            if (!$existingTrip) {
+
+                return response()->json(
+                    [
+                        "success" => true,
+                        "message" => "There's no trip available",
+                    ],
+                    404
+                );
+            }
+
+            $existingUserTrip = DB::table('trip_users')->where([['trip_id', $tripId], ['user_id', $user->id]]);
+
+            if ($existingUserTrip->exists()) {
+
+                return response()->json(
+                    [
+                        "success" => true,
+                        "message" => "You are already joined to this trip",
+                    ],
+                    401
+                );
+            }
+
+            $newTrip = TripUser::create([
+                'trip_id' => $tripId,
+                'user_id' => $user->id,
+                'role_id' => self::TRAVELER_ROLE
+            ]);
+
+            return response()->json(
+                [
+                    "success" => true,
+                    "message" => "Joined to the trip",
+                    "data" => $newTrip
+                ],
+                201
+            );
+        } catch (\Throwable $th) {
+
+            return response()->json(
+                [
+                    "success" => false,
+                    "message" => "Couldnt join trip",
+                    "data" => $th->getMessage()
+                ],
+                500
+            );
+        }
+    }
 
     public function findTripsFromUser(string $userId)
     {
