@@ -17,6 +17,7 @@ class UserController extends Controller
 
     const ADMIN_ROLE = 3;
 
+    // LOGIN FUNCTION
     public function login(Request $request)
     {
         try {
@@ -30,7 +31,7 @@ class UserController extends Controller
                 return response()->json(
                     [
                         "success" => true,
-                        "message" => "Body validation fails",
+                        "message" => "Email and password are required!",
                         "errors" => $validator->errors()
                     ],
                     400
@@ -49,7 +50,7 @@ class UserController extends Controller
                         "success" => true,
                         "message" => "User or password invalid",
                     ],
-                    404
+                    400
                 );
             }
 
@@ -60,7 +61,7 @@ class UserController extends Controller
                         "success" => true,
                         "message" => "User or password invalid",
                     ],
-                    404
+                    400
                 );
             }
 
@@ -73,7 +74,7 @@ class UserController extends Controller
                     "data" => $user,
                     "token" => $token
                 ],
-                200
+                201
             );
         } catch (\Throwable $th) {
             Log::error("Error logging user: " . $th->getMessage());
@@ -89,12 +90,24 @@ class UserController extends Controller
         }
     }
 
+    // GET USERS LIST
     public function index()
     {
         Log::info("Get list of all users");
 
         try {
             $users = User::query()->get();
+
+            if (!$users) {
+
+                return response()->json(
+                    [
+                        "success" => true,
+                        "message" => "Could not retrieve users",
+                    ],
+                    404
+                );
+            }
 
             return response()->json(
                 [
@@ -110,15 +123,16 @@ class UserController extends Controller
 
             return response()->json(
                 [
-                    "success" => true,
-                    "message" => "Couldnt retrieve users",
+                    "success" => false,
+                    "message" => "Couldn't retrieve users",
                     "data" => $th->getMessage()
                 ],
-                201
+                500
             );
         }
     }
 
+    // REGISTER USER
     public function store(Request $request)
     {
         try {
@@ -126,7 +140,7 @@ class UserController extends Controller
             $validator = FacadesValidator::make($request->all(), [
                 'name' => 'required',
                 'email' => 'required | unique:users,email',
-                'password' => 'required | min:6 | max:12',
+                'password' => 'required | min:6',
             ]);
 
             if ($validator->fails()) {
@@ -134,7 +148,7 @@ class UserController extends Controller
                 return response()->json(
                     [
                         "success" => true,
-                        "message" => "Body validation fails",
+                        "message" => "All fields are required! Password must have at least 6 characters.",
                         "errors" => $validator->errors()
                     ],
                     400
@@ -153,6 +167,16 @@ class UserController extends Controller
                 'password' => $encryptedPassword,
             ]);
 
+            if (!$user) {
+                return response()->json(
+                    [
+                        "success" => true,
+                        "message" => "Couldn't register user!",
+                    ],
+                    404
+                );
+            }
+
             $token = $user->createToken('apiToken')->plainTextToken;
 
             DB::table('users')
@@ -166,7 +190,7 @@ class UserController extends Controller
                     "data" => $user,
                     "token" => $token
                 ],
-                200
+                201
             );
         } catch (\Throwable $th) {
 
@@ -183,13 +207,36 @@ class UserController extends Controller
         }
     }
 
+    // GET USER PROFILE
     public function show()
     {
         Log::info("User profile");
 
         try {
             $user = auth()->user();
+
+            if (!$user) {
+                return response()->json(
+                    [
+                        "success" => true,
+                        "message" => "No user found",
+                    ],
+                    401
+                );
+            }
+
             $user = User::query()->where('id', '=', $user->id)->get();
+
+            if (!$user) {
+
+                return response()->json(
+                    [
+                        "success" => true,
+                        "message" => "Couldn't retrieve user profile!",
+                    ],
+                    404
+                );
+            }
 
             return response()->json(
                 [
@@ -205,15 +252,16 @@ class UserController extends Controller
 
             return response()->json(
                 [
-                    "success" => true,
+                    "success" => false,
                     "message" => "Couldnt retrieve user profile",
                     "data" => $th->getMessage()
                 ],
-                404
+                500
             );
         }
     }
 
+    // UPDATE USER DATA
     public function update(Request $request, string $userId)
     {
         Log::info("User update");
@@ -221,6 +269,17 @@ class UserController extends Controller
         try {
 
             $user = auth()->user();
+
+            if (!$user) {
+                return response()->json(
+                    [
+                        "success" => true,
+                        "message" => "No user found",
+                    ],
+                    401
+                );
+            }
+
             $password = $request->input('password');
 
             if ($password) {
@@ -228,14 +287,28 @@ class UserController extends Controller
                 $request->merge(['password' => $encryptedPassword]);
             }
 
-            if ($user->id == $userId || $user->role_id == self::ADMIN_ROLE) {
+            if ($user->id != $userId && $user->role_id != self::ADMIN_ROLE) {
+                return response()->json(
+                    [
+                        "success" => true,
+                        "message" => "Unauthorized",
+                    ],
+                    403
+                );
+            }
 
-                $updatedUser = User::query()
-                    ->where('id', '=', $user->id)
-                    ->update($request->all());
-            } else {
+            $updatedUser = User::query()
+                ->where('id', '=', $user->id)
+                ->update($request->all());
 
-                throw new Error('You have no permissions to update this user');
+            if (!$updatedUser) {
+                return response()->json(
+                    [
+                        "success" => false,
+                        "message" => "Couldn't update user!",
+                    ],
+                    404
+                );
             }
 
             return response()->json(
@@ -267,15 +340,29 @@ class UserController extends Controller
 
             $user = auth()->user();
 
-            if ($user->role_id == self::ADMIN_ROLE || $userId == $user->id) {
-
-                DB::table('users')->where('id', '=', $userId)->delete();
-
-                return response()->json(['message' => 'User deleted successfuly'], 201);
-            } else {
-
-                throw new Error('You have no permission!');
+            if (!$user) {
+                return response()->json(
+                    [
+                        "success" => true,
+                        "message" => "No user found",
+                    ],
+                    401
+                );
             }
+
+            if ($user->role_id != self::ADMIN_ROLE && $userId != $user->id) {
+                return response()->json(
+                    [
+                        "success" => true,
+                        "message" => "Unauthorized",
+                    ],
+                    403
+                );
+            }
+
+            DB::table('users')->where('id', '=', $userId)->delete();
+
+            return response()->json(['message' => 'User deleted successfuly'], 201);
         } catch (\Throwable $th) {
 
             Log::error("Error at erase user");
@@ -291,6 +378,7 @@ class UserController extends Controller
         }
     }
 
+    // GET USERS BY PAGINATION
     public function userPagination(Request $request)
     {
 
@@ -319,6 +407,16 @@ class UserController extends Controller
                 'previous_page' => $previousPage,
             ];
 
+            if (!$responseData) {
+                return response()->json(
+                    [
+                        "success" => true,
+                        "message" => "Couldnt retrieve users",
+                    ],
+                    404
+                );
+            }
+
             return response()->json(
                 [
                     "success" => true,
@@ -333,23 +431,22 @@ class UserController extends Controller
 
             return response()->json(
                 [
-                    "success" => true,
+                    "success" => false,
                     "message" => "Couldnt retrieve users",
                     "data" => $th->getMessage()
                 ],
-                201
+                500
             );
         }
     }
 
-    public function userByName(Request $request)
+    // FILTER USERS
+    public function userByFilter(Request $request)
     {
-        Log::info("Get users filtered by name");
+        Log::info("Get users filtered");
 
         try {
             $filter = $request->query('filter');
-
-
             $usersQuery = User::query();
 
             if ($filter) {
@@ -360,8 +457,18 @@ class UserController extends Controller
                         ->orWhere('email', 'like', '%' . $filter . '%');
                 });
             }
-            
+
             $users = $usersQuery->get();
+
+            if (!$users) {
+                return response()->json(
+                    [
+                        "success" => true,
+                        "message" => "Couldnt retrieve users",
+                    ],
+                    404
+                );
+            }
 
             return response()->json(
                 [
@@ -377,11 +484,11 @@ class UserController extends Controller
 
             return response()->json(
                 [
-                    "success" => true,
+                    "success" => false,
                     "message" => "Couldnt retrieve users",
                     "data" => $th->getMessage()
                 ],
-                201
+                500
             );
         }
     }
