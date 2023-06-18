@@ -428,8 +428,6 @@ class UserController extends Controller
     {
 
         try {
-  
-
             $pageSize = $request->input('page_size', 10);
             $users = User::paginate($pageSize);
 
@@ -494,8 +492,6 @@ class UserController extends Controller
         Log::info("Get users filtered");
 
         try {
-   
-            
             $filter = $request->query('filter');
             $usersQuery = User::query();
 

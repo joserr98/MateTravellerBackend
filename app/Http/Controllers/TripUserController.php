@@ -157,7 +157,6 @@ class TripUserController extends Controller
         Log::error("Users from {$tripId} trip");
 
         try {
-            
             $usersFromTrip = DB::table('users AS u')
                 ->select('tu.user_id', 'tu.trip_id', 'u.name', 'u.lastname', 'u.country', 't.city', 't.description', 'u.birthday')
                 ->join('trip_users AS tu', 'u.id', '=', 'tu.user_id')
@@ -199,7 +198,6 @@ class TripUserController extends Controller
         Log::error("Users from {$tripId} trip");
 
         try {
-            
             $usersFromTrip = DB::table('users AS u')
                 ->select('tu.user_id', 'tu.trip_id', 'u.name', 'u.lastname', 'u.country', 't.city', 't.description', 'u.birthday')
                 ->join('trip_users AS tu', 'u.id', '=', 'tu.user_id')
