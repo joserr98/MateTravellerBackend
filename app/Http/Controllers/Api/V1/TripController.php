@@ -23,6 +23,7 @@ class TripController extends Controller
         Log::info("Get list of all trips");
 
         try {
+            
             $trips = Trip::query()->get();
 
             return response()->json(
