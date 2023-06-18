@@ -11,29 +11,30 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/users/profile', [UserController::class, 'show']);
     Route::patch('/users/{user}', [UserController::class, 'update']);
     Route::delete('/users/{user}', [UserController::class, 'destroy']);
+    Route::get('/users', [UserController::class, 'index']);
+    Route::get('/users/pages', [UserController::class, 'userPagination']);
+    Route::get('/users/filter', [UserController::class, 'userByFilter']);
 });
-Route::get('/users/filter', [UserController::class, 'userByFilter']);
-Route::get('/users/pages', [UserController::class, 'userPagination']);
 Route::post('/login', [UserController::class, 'login']);
-Route::apiResource('/users', UserController::class)->only(['index', 'store']);
+Route::post('/users', [UserController::class, 'store']);
 
 // TRIPS ROUTES
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/trips', [TripController::class, 'store']);
     Route::put('/trips/{trip}', [TripController::class, 'update']);
     Route::delete('/trips/{trip}', [TripController::class, 'destroy']);
+    Route::get('/trips/{trip}', [TripController::class, 'show']);
 });
 Route::get('/trips/pages', [TripController::class, 'tripPagination']);
-Route::get('/trips/{trip}', [TripController::class, 'show']);
-Route::apiResource('/trips', TripController::class)->only(['index']);
+Route::get('/trips', [TripController::class, 'index']);
 
 // USER TRIPS ROUTES
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/trips/{trip}', [TripUserController::class, 'join']);
     Route::get('/trips/users/{user}', [TripUserController::class, 'findTripsFromUser']);
+    Route::get('/users/organizer/trips/{trip}', [TripUserController::class, 'findOrganizerFromTrip']);
+    Route::get('/users/travelers/trips/{trip}', [TripUserController::class, 'findTravelersFromTrip']);
 });
-Route::get('/users/organizer/trips/{trip}', [TripUserController::class, 'findOrganizerFromTrip']);
-Route::get('/users/travelers/trips/{trip}', [TripUserController::class, 'findTravelersFromTrip']);
     
 // MESSAGE ROUTES
 Route::middleware(['auth:sanctum'])->group(function () {

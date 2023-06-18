@@ -20,6 +20,7 @@ class MessageController extends Controller
             $user = auth()->user();
 
             if (!$user) {
+                
                 return response()->json(
                     [
                         "success" => true,

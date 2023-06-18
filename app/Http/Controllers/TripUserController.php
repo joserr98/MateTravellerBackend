@@ -168,7 +168,19 @@ class TripUserController extends Controller
         Log::error("Users from {$tripId} trip");
 
         try {
+            $user = auth()->user();
 
+            if (!$user) {
+
+                return response()->json(
+                    [
+                        "success" => true,
+                        "message" => "No user found",
+                    ],
+                    401
+                );
+            }
+            
             $usersFromTrip = DB::table('users AS u')
                 ->select('tu.user_id', 'tu.trip_id', 'u.name', 'u.lastname', 'u.country', 't.city', 't.description', 'u.birthday')
                 ->join('trip_users AS tu', 'u.id', '=', 'tu.user_id')
@@ -210,6 +222,18 @@ class TripUserController extends Controller
         Log::error("Users from {$tripId} trip");
 
         try {
+            $user = auth()->user();
+
+            if (!$user) {
+
+                return response()->json(
+                    [
+                        "success" => true,
+                        "message" => "No user found",
+                    ],
+                    401
+                );
+            }
 
             $usersFromTrip = DB::table('users AS u')
                 ->select('tu.user_id', 'tu.trip_id', 'u.name', 'u.lastname', 'u.country', 't.city', 't.description', 'u.birthday')
@@ -221,7 +245,7 @@ class TripUserController extends Controller
             $total = $usersFromTrip->count();
 
             if (!$usersFromTrip) {
-                
+
                 return response()->json(
                     [
                         "success" => true,

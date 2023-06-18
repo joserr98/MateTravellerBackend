@@ -95,6 +95,19 @@ class UserController extends Controller
         Log::info("Get list of all users");
 
         try {
+            $user = auth()->user();
+
+            if (!$user) {
+                
+                return response()->json(
+                    [
+                        "success" => true,
+                        "message" => "No user found",
+                    ],
+                    401
+                );
+            }
+
             $users = User::query()->get();
 
             if (!$users) {
@@ -215,6 +228,7 @@ class UserController extends Controller
             $user = auth()->user();
 
             if (!$user) {
+                
                 return response()->json(
                     [
                         "success" => true,
@@ -266,10 +280,10 @@ class UserController extends Controller
         Log::info("User update");
 
         try {
-
             $user = auth()->user();
 
             if (!$user) {
+                
                 return response()->json(
                     [
                         "success" => true,
@@ -351,16 +365,7 @@ class UserController extends Controller
                 ->where('id', '=', $user->id)
                 ->update($request->all());
 
-            if ($updatedUser == 0) {
-
-                return response()->json(
-                    [
-                        "success" => false,
-                        "message" => "Couldn't update user!",
-                    ],
-                    404
-                );
-            }
+ 
 
             return response()->json(
                 [
@@ -436,6 +441,19 @@ class UserController extends Controller
     {
 
         try {
+            $user = auth()->user();
+
+            if (!$user) {
+                
+                return response()->json(
+                    [
+                        "success" => true,
+                        "message" => "No user found",
+                    ],
+                    401
+                );
+            }
+
             $pageSize = $request->input('page_size', 10);
             $users = User::paginate($pageSize);
 
@@ -500,6 +518,19 @@ class UserController extends Controller
         Log::info("Get users filtered");
 
         try {
+            $user = auth()->user();
+
+            if (!$user) {
+                
+                return response()->json(
+                    [
+                        "success" => true,
+                        "message" => "No user found",
+                    ],
+                    401
+                );
+            }
+            
             $filter = $request->query('filter');
             $usersQuery = User::query();
 
