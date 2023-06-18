@@ -32,9 +32,9 @@ Route::get('/trips', [TripController::class, 'index']);
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/trips/{trip}', [TripUserController::class, 'join']);
     Route::get('/trips/users/{user}', [TripUserController::class, 'findTripsFromUser']);
+    Route::get('/users/organizer/trips/{trip}', [TripUserController::class, 'findOrganizerFromTrip']);
+    Route::get('/users/travelers/trips/{trip}', [TripUserController::class, 'findTravelersFromTrip']);
 });
-Route::get('/users/organizer/trips/{trip}', [TripUserController::class, 'findOrganizerFromTrip']);
-Route::get('/users/travelers/trips/{trip}', [TripUserController::class, 'findTravelersFromTrip']);
     
 // MESSAGE ROUTES
 Route::middleware(['auth:sanctum'])->group(function () {

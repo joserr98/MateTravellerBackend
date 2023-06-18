@@ -105,17 +105,6 @@ class TripUserController extends Controller
 
             $user = auth()->user();
 
-            if (!$user) {
-
-                return response()->json(
-                    [
-                        "success" => true,
-                        "message" => "No user found",
-                    ],
-                    401
-                );
-            }
-
             if ($user->role_id != self::ADMIN_ROLE && $user->id != $userId) {
 
                 return response()->json(
@@ -168,6 +157,7 @@ class TripUserController extends Controller
         Log::error("Users from {$tripId} trip");
 
         try {
+            auth()->user();
             
             $usersFromTrip = DB::table('users AS u')
                 ->select('tu.user_id', 'tu.trip_id', 'u.name', 'u.lastname', 'u.country', 't.city', 't.description', 'u.birthday')
@@ -210,7 +200,8 @@ class TripUserController extends Controller
         Log::error("Users from {$tripId} trip");
 
         try {
-
+            auth()->user();
+            
             $usersFromTrip = DB::table('users AS u')
                 ->select('tu.user_id', 'tu.trip_id', 'u.name', 'u.lastname', 'u.country', 't.city', 't.description', 'u.birthday')
                 ->join('trip_users AS tu', 'u.id', '=', 'tu.user_id')
