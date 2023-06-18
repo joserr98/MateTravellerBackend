@@ -23,8 +23,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/trips', [TripController::class, 'store']);
     Route::put('/trips/{trip}', [TripController::class, 'update']);
     Route::delete('/trips/{trip}', [TripController::class, 'destroy']);
-    Route::get('/trips/{trip}', [TripController::class, 'show']);
 });
+Route::get('/trips/{trip}', [TripController::class, 'show']);
 Route::get('/trips/pages', [TripController::class, 'tripPagination']);
 Route::get('/trips', [TripController::class, 'index']);
 

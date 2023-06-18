@@ -141,19 +141,6 @@ class TripController extends Controller
         Log::info("Get Trip {$trip->id}");
 
         try {
-            $user = auth()->user();
-
-            if (!$user) {
-
-                return response()->json(
-                    [
-                        "success" => true,
-                        "message" => "No user found",
-                    ],
-                    401
-                );
-            }
-            
             $trip = Trip::query()->where('id', '=', $trip->id)->get();
 
             if (!$trip) {
