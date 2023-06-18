@@ -11,10 +11,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/users/profile', [UserController::class, 'show']);
     Route::patch('/users/{user}', [UserController::class, 'update']);
     Route::delete('/users/{user}', [UserController::class, 'destroy']);
-    Route::get('/users', [UserController::class, 'index']);
-    Route::get('/users/pages', [UserController::class, 'userPagination']);
-    Route::get('/users/filter', [UserController::class, 'userByFilter']);
 });
+Route::get('/users', [UserController::class, 'index']);
+Route::get('/users/pages', [UserController::class, 'userPagination']);
+Route::get('/users/filter', [UserController::class, 'userByFilter']);
 Route::post('/login', [UserController::class, 'login']);
 Route::post('/users', [UserController::class, 'store']);
 
